@@ -14,6 +14,16 @@ import pandas as pd
 from scipy import stats
 import matplotlib.pyplot as plt
 
+plt.rcParams["font.sans-serif"] = [
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    "SimHei",
+    "Noto Sans CJK SC",
+    "DejaVu Sans",
+]
+plt.rcParams["axes.unicode_minus"] = False
+
 
 def run_stats(df: pd.DataFrame, group_col: str, value_col: str):
     groups = [g for g, _ in df.groupby(group_col, sort=False)]
