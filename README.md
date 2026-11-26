@@ -1,60 +1,71 @@
-# QingYan SciPlot Lite · 清研科研绘图与自动统计检验工具（开源体验版）
+<div align="center">
 
-> **作者主页与完整版支持**：本项目由「清研数据工具」原创开发与持续维护，已在爱发电正式入驻：  
-> **https://ifdian.net/a/qingyandata**
+# QingYan SciPlot Lite
 
-本仓库提供 **QingYan SciPlot** 系列的开源轻量体验脚本与 300 DPI 示例成图，帮助本科毕设、硕博组会与论文作者在不上传任何原始实验数据的前提下，在本地电脑快速完成规范统计检验与出版级图表绘制。
+Local-first Python utility for publication-ready grouped plots and automated statistical testing.
 
----
+![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&logo=python&logoColor=white)
+![Output](https://img.shields.io/badge/Output-300%20DPI%20PNG%20%2F%20SVG-2A9D8F?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-4A5568?style=flat-square)
 
-## 为什么做这套离线工具？
+[Quick Start](#quick-start) · [Decision Logic](#statistical-decision-logic) · [Editions](#lite-vs-full) · [Sponsor (Afdian)](https://ifdian.net/a/qingyandata)
 
-科研作图最常见的两个痛点：
-1. **统计方法用错被审稿人打回**：不做正态性与方差齐性预检就盲目跑常规 t 检验 / ANOVA，或多重比较漏做校正；
-2. **默认绘图不满足投稿规范**：分辨率不足 300 DPI、矢量图嵌入位图、配色对色盲读者不友好、图例遮挡散点。
+</div>
 
----
+<p align="center">
+  <img src="examples/showcase.png" alt="QingYan SciPlot Showcase" width="100%" />
+</p>
 
-## 示例成图展示（全部由本工具基于合成数据离线生成，300 DPI）
+## Overview
 
-### 1. 分组比较箱线散点图（自动显著性检验）
-![分组比较示例](examples/comparison.png)
+`QingYan SciPlot Lite` runs completely offline on local CSV/Excel datasets. Before plotting, it automatically checks normality and homogeneity of variance, selects the corresponding parametric or non-parametric test, and exports 300 DPI raster (`PNG`) alongside editable vector (`SVG`) figures with CJK font fallback.
 
-### 2. 配对前后连线对比图
-![配对比较示例](examples/paired.png)
+All sample outputs in `examples/` are generated offline from synthetic datasets (`demo_data/`).
 
-### 3. 多面板复合排版示例（完整版功能展示）
-![多面板拼图示例](examples/panel.png)
-
----
-
-## 快速体验（3 分钟本地离线跑通）
+## Quick Start
 
 ```bash
 pip install -r requirements.txt
 python3 src/quick_boxplot.py --input demo_data/comparison.csv --out output/demo_box
 ```
 
-运行后将在 `output/` 目录生成：
-- `demo_box.png`（300 DPI 投稿级位图）
-- `demo_box.svg`（可直接在 Illustrator / Inkscape 编辑的纯矢量图）
-- 终端自动输出正态性检验（Shapiro-Wilk）、方差齐性检验（Levene）与对应假设检验统计量及精确 `p` 值。
+Example terminal output on `demo_data/comparison.csv`:
 
----
+```text
+[OK] method=One-way ANOVA | normal=True | equal_var=True | stat=24.0257 | p=1.75886e-08
+[OK] saved: output/demo_box.png & output/demo_box.svg
+```
 
-## 开源体验版 vs 完整版对照
+### CLI Options
 
-| 能力模块 | 开源体验版（本仓库） | 完整版（爱发电支持） |
-| --- | :---: | :---: |
-| 分组箱线散点图 + 基础自动统计检验 | ✅ | ✅ |
-| 显著性星号连线 + Tukey / Dunn-BH 事后两两比较 | 基础输出 | ✅ 全自动标注 |
-| 中英文论文 Methods 统计描述自动生成 | — | ✅ |
-| 12 类顶刊图型（KM 生存曲线 / ROC+DeLong / 火山图 / 聚类热图 / PCA / 森林图 / 相关性矩阵 / 轨迹图 / 多面板拼图） | 仅演示样图 | ✅ 全部引擎与样表 |
-| 本地浏览器离线画廊与 Excel 直接导入 | — | ✅ |
+| Flag | Default | Description |
+| :--- | :--- | :--- |
+| `--input` | `demo_data/comparison.csv` | Input CSV path (long format) |
+| `--group-col` | `group` | Grouping column name (falls back to column 0) |
+| `--value-col` | `value` | Numeric value column name (falls back to column 1) |
+| `--out` | `output/comparison_lite` | Output file path prefix (writes `.png` and `.svg`) |
 
-获取精选版（¥9.9）或 12 类 SCI 科研图完整版（¥39.9）及持续版本更新，欢迎前往我的爱发电创作者主页支持：  
-👉 **https://ifdian.net/a/qingyandata**
+## Statistical Decision Logic
+
+1. **Pre-checks**: Runs Shapiro–Wilk normality test per group (`alpha = 0.05`) and Levene's test for equal variances (`alpha = 0.05`).
+2. **Two groups**: Independent *t*-test (normal + equal variance), Welch's *t*-test (normal + unequal variance), or Mann–Whitney *U* test (non-normal).
+3. **Three or more groups**: One-way ANOVA (normal + equal variance) or Kruskal–Wallis *H* test (otherwise).
+
+## Lite vs. Full
+
+| Feature | Lite (This Repo, MIT) | Full Suite |
+| :--- | :---: | :---: |
+| Grouped box + jitter scatter (`PNG` 300 DPI / `SVG`) | Included | Included |
+| Automated Shapiro–Wilk + Levene + primary omnibus test | Included | Included |
+| Automated post-hoc brackets (`Tukey HSD` / `Dunn + BH`) | — | Included |
+| Bilingual `Methods` statistical summary export | — | Included |
+| 12 figure engines (KM survival, ROC + DeLong, volcano, heatmap, PCA, forest, paired, trajectory, correlation, multi-panel) | Sample PNGs only | Included |
+| Offline interactive gallery & Excel template support | — | Included |
+
+## Support & Updates
+
+Maintained by **清研数据工具**. Full suite releases and ongoing development are hosted on Afdian: [https://ifdian.net/a/qingyandata](https://ifdian.net/a/qingyandata)
 
 ## License
 
-MIT License（本开源体验版脚本与合成示例数据采用 MIT 协议开源）。
+MIT
